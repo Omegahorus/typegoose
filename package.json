@@ -5,11 +5,12 @@
   "main": "lib/typegoose.js",
   "scripts": {
     "start": "npm run build && node ./lib/typegoose.js",
-    "build": "rimraf lib && tsc",
-    "lint": "tslint --type-check --project tsconfig.json",
+    "build": "npm run prepare && rimraf lib && tsc",
+    "prepare": "install-self-peers -- --ignore-scripts",
+    "lint": "npm run prepare && tslint --type-check --project tsconfig.json",
     "test": "npm run lint && npm run cover",
     "mocha": "npm run build && mocha ./lib --recursive",
-    "cover": "npm run build && istanbul cover _mocha -- lib --recursive -R spec",
+    "cover": "npm run build && istanbul cover node_modules/mocha/bin/_mocha -- lib --recursive -R spec",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
@@ -21,13 +22,16 @@
   "author": "Akos Szokodi <akos@codingsans.com> (http://codingsans.com)",
   "license": "MIT",
   "dependencies": {
-    "@types/mongoose": "^4.7.15",
     "lodash": "^4.17.4",
-    "mongoose": "^4.11.1",
     "reflect-metadata": "^0.1.8",
     "typescript": "^2.4.2"
   },
+  "peerDependencies": {
+    "@types/mongoose": "^4.7.15",
+    "mongoose": "^4.11.1"
+  },
   "devDependencies": {
+    "@team-griffin/install-self-peers": "^1.1.1",
     "@types/chai": "^3.4.35",
     "@types/dotenv": "^4.0.0",
     "@types/lodash": "^4.14.55 <4.14.74",
