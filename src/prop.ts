@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose';
 import * as _ from 'lodash';
 
 import { schema, virtuals } from './data';
-import { isPrimitive, initAsObject, initAsArray, isString, isNumber } from './utils';
+import { isPrimitive, initAsObject, initAsArray, isString, isNumber, isObject } from './utils';
 import { InvalidPropError, NotNumberTypeError, NotStringTypeError, NoMetadataError } from './errors';
 
 export type Func = (...args: any[]) => any;
@@ -15,6 +15,8 @@ export interface BasePropOptions {
   default?: any;
   unique?: boolean;
   index?: boolean;
+  sparse?: boolean;
+  expires?: string | number;
 }
 
 export interface PropOptions extends BasePropOptions {
@@ -118,7 +120,7 @@ const baseProp = (rawOptions, Type, target, key, isArray = false) => {
 
   const instance = new Type();
   const subSchema = schema[instance.constructor.name];
-  if (!subSchema && !isPrimitive(Type)) {
+  if (!subSchema && !isPrimitive(Type) && !isObject(Type)) {
     throw new InvalidPropError(Type.name, key);
   }
 
@@ -140,6 +142,17 @@ const baseProp = (rawOptions, Type, target, key, isArray = false) => {
     return;
   }
 
+  // If the 'Type' is not a 'Primitive Type' and no subschema was found treat the type as 'Object'
+  // so that mongoose can store it as nested document
+  if (isObject(Type) && !subSchema) {
+    schema[name][key] = {
+      ...schema[name][key],
+      ...options,
+      type: Object,
+    };
+    return;
+  }
+
   if (isArray) {
     schema[name][key][0] = {
       ...schema[name][key][0],
@@ -148,10 +161,13 @@ const baseProp = (rawOptions, Type, target, key, isArray = false) => {
     };
     return;
   }
+
+  const Schema = mongoose.Schema;
+
   schema[name][key] = {
     ...schema[name][key],
     ...options,
-    ...subSchema,
+    type: new Schema({ ...subSchema }),
   };
   return;
 };
