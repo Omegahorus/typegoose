@@ -6,8 +6,9 @@
   "scripts": {
     "start": "npm run build && node ./lib/typegoose.js",
     "build": "npm run prepare && rimraf lib && tsc",
-    "prepare": "install-self-peers -- --ignore-scripts",
-    "lint": "npm run prepare && tslint --type-check --project tsconfig.json",
+    "build-production": "tsc --project tsconfig_production.json",
+    "postinstall": "(install-self-peers -- --ignore-scripts || true) && npm run build-production",
+    "lint": "npm run prepare && tslint --project tsconfig.json",
     "test": "npm run lint && npm run cover",
     "mocha": "npm run build && mocha ./lib --recursive",
     "cover": "npm run build && istanbul cover node_modules/mocha/bin/_mocha -- lib --recursive -R spec",
